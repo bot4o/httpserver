@@ -53,6 +53,15 @@ int main() {
             std::cout << "HTTP REQUEST RECIVED" << std::endl;
             std::cout << buff << std::endl;
         }
+
+        result = send(clientfd, buff, 4096, 0);
+        if(result == -1) {
+            std::cout << "failed to send buff";
+        }
+        else {
+            std::cout << "send success" << "\n";
+            std::cout << result;
+        }
     }
 
     result = close(clientfd);
