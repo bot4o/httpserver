@@ -1,13 +1,12 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <iostream>
-#include <string>
-#define PORT 8080
+#include <cstring>
 
+#define PORT 8080
 int main() {
-    std::string url = "http://localhost:" + std::to_string(PORT);
-    //Server socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd == -1) {
         std::cout << "Socket creation error!" << std::endl;
@@ -20,7 +19,6 @@ int main() {
         0 //localhost
     };
 
-    //Assgining IP address to the socket: localhost
     int result = bind(sockfd, (struct sockaddr *)&address, sizeof(address));
     if(result == -1) { 
         std::cout << "ERROR: Binding IP to socket file descriptor" << std::endl;
@@ -36,15 +34,16 @@ int main() {
         return 1;
     }
     std::cout << "Server listening on port " << PORT << "...\n";
-    //Последните два аргумента могат да върнат адрес, ако искаме адресът на клиента, 
-    //но ние сме използваме localhost за това поставяме стойност 0 и на двете. Ако изпълнението е 
-    //успешно, accept() ще върне клиентския файлов дескриптор;
 
+    //Assgining IP address to the socket: localhost
     //Client socket
-    int clientfd = -1;
+    int clientfd;
     for(;;) {
         //Waiting to get the request 
         //Program wont continue unless something is recived here
+
+        //Последните два аргумента могат да върнат адрес, ако искаме адресът на клиента, 
+        //но ние сме използваме localhost за това поставяме стойност 0 и на двете.
         clientfd = accept(sockfd, 0 , 0);
         if(clientfd == -1)  {
             std::cout << "ERROR: Socket creation error!" << std::endl;
@@ -58,9 +57,15 @@ int main() {
         if(valread > 0) {
             std::cout << "HTTP REQUEST RECIVED" << std::endl;
             std::cout << requestBuff << std::endl;
+
+            //TODO: Process the request
+            char* method = strtok(requestBuff, " ");
+            char* requestTarget = strtok(NULL, " ");
+            char* protocol = strtok(NULL, "\r\n");
+
+            std::cout << "READ:" << method << requestTarget << protocol << "\n";
         }
-        //TODO: Process the request
-        
+
         //Creating a response
         char responseBuff[4096];
         //Sending the response
@@ -73,14 +78,7 @@ int main() {
             std::cout << "Response sent successfully" << std::endl;
             std::cout << result;
         }
-        
-        std::cout << "--------------------------------------------------------------" << std::endl;
     }
-
-
-
-
-
 
     result = close(clientfd);
     if(result == -1) {
@@ -94,6 +92,5 @@ int main() {
     }
 
     std::cout << "Server closed";
-
     return 0;
 }
