@@ -1,11 +1,12 @@
-#include <stdio.h>
+#include <iostream>
+#include <cstdio>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <iostream>
 #include <cstring>
 
 #define PORT 8080
+
 int main() {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd == -1) {
@@ -52,7 +53,7 @@ int main() {
         }
 
         //The request
-        char requestBuff[4096] = {0};
+        char requestBuff[4096];
         int valread = read(clientfd, &requestBuff, sizeof(requestBuff));
         if(valread > 0) {
             std::cout << "HTTP REQUEST RECIVED" << std::endl;
@@ -63,20 +64,41 @@ int main() {
             char* requestTarget = strtok(NULL, " ");
             char* protocol = strtok(NULL, "\r\n");
 
-            std::cout << "READ:" << method << requestTarget << protocol << "\n";
-        }
+            if(strcmp(protocol, "HTTP/1.1") == 0) {
+                if(strcmp(method, "GET") == 0) {
+                    if(requestTarget[0] == '/') {
+                        FILE* file = fopen("./src/index.html", "r");
+                        if(!file) {
+                            std::cerr << "ERROR: Could not open index.html\n";
+                            return 1;
+                        }
+                        char fileBuffer[2048];
+                        long bytesRead = fread(fileBuffer, 1, sizeof(fileBuffer) - 1, file);
+                        fileBuffer[bytesRead] = '\0';
+                        fclose(file);
 
-        //Creating a response
-        char responseBuff[4096];
-        //Sending the response
-        result = send(clientfd, responseBuff, 4096, 0);
-        if(result == -1) {
-            std::cout << "ERROR: Failed to send a response" << std::endl;
-            return 1;
-        }
-        else {
-            std::cout << "Response sent successfully" << std::endl;
-            std::cout << result;
+                        char responseBuff[4096];
+                        responseBuff[0] = '\0';
+                        strcat(responseBuff, "HTTP/1.1 200 OK\r\n");
+                        strcat(responseBuff, "Content-Type: text/html\r\n");
+                        strcat(responseBuff, "\r\n");
+                        strcat(responseBuff, fileBuffer);
+
+                        std::cout << responseBuff;
+
+                        //SENDING THE RESPONSE
+                        result = send(clientfd, responseBuff, 4096, 0);
+                        if(result == -1) {
+                            std::cout << "ERROR: Failed to send a response" << std::endl;
+                            return 1;
+                        }
+                        else {
+                            std::cout << "Response sent successfully" << std::endl;
+                            std::cout << result;
+                        }
+                    }
+                }
+            }
         }
     }
 
