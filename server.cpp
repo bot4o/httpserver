@@ -38,14 +38,13 @@ int main() {
 
     //Assgining IP address to the socket: localhost
     //Client socket
-    int clientfd;
     for(;;) {
         //Waiting to get the request 
         //Program wont continue unless something is recived here
 
         //Последните два аргумента могат да върнат адрес, ако искаме адресът на клиента, 
         //но ние сме използваме localhost за това поставяме стойност 0 и на двете.
-        clientfd = accept(sockfd, 0 , 0);
+        int clientfd = accept(sockfd, 0 , 0);
         if(clientfd == -1)  {
             std::cout << "ERROR: Socket creation error!" << std::endl;
             std::cout << errno << std::endl;
@@ -56,7 +55,6 @@ int main() {
         char requestBuff[4096];
         int valread = read(clientfd, &requestBuff, sizeof(requestBuff));
         if(valread > 0) {
-            std::cout << "HTTP REQUEST RECIVED" << std::endl;
             std::cout << requestBuff << std::endl;
 
             //TODO: Process the request
@@ -69,7 +67,7 @@ int main() {
                     if(requestTarget[0] == '/') {
                         FILE* file = fopen("./src/index.html", "r");
                         if(!file) {
-                            std::cerr << "ERROR: Could not open index.html\n";
+                            std::cout << "ERROR: Could not open index.html\n";
                             return 1;
                         }
                         char fileBuffer[2048];
@@ -84,17 +82,18 @@ int main() {
                         strcat(responseBuff, "\r\n");
                         strcat(responseBuff, fileBuffer);
 
-                        std::cout << responseBuff;
-
                         //SENDING THE RESPONSE
-                        result = send(clientfd, responseBuff, 4096, 0);
+                        result = send(clientfd, responseBuff, strlen(responseBuff), 0);
                         if(result == -1) {
                             std::cout << "ERROR: Failed to send a response" << std::endl;
                             return 1;
                         }
                         else {
-                            std::cout << "Response sent successfully" << std::endl;
-                            std::cout << result;
+                            result = close(clientfd);
+                            if(result == -1) {
+                                std::cout << "ERROR: Couldn't close client socket";
+                                return 1;
+                            }
                         }
                     }
                 }
@@ -102,11 +101,6 @@ int main() {
         }
     }
 
-    result = close(clientfd);
-    if(result == -1) {
-        std::cout << "ERROR: Couldn't close client socket";
-        return 1;
-    }
     result = close(sockfd);
     if(result == -1) {
         std::cout << "ERROR: Couldn't close server socket";
