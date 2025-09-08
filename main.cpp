@@ -17,7 +17,7 @@ int main() {
     struct sockaddr_in address = {
         AF_INET,
         htons(PORT),
-        0 //localhost
+        {0} //localhost
     };
 
     int result = bind(sockfd, (struct sockaddr *)&address, sizeof(address));
@@ -65,7 +65,7 @@ int main() {
             if(strcmp(protocol, "HTTP/1.1") == 0) {
                 if(strcmp(method, "GET") == 0) {
                     if(requestTarget[0] == '/') {
-                        FILE* file = fopen("./src/index.html", "r");
+                        FILE* file = fopen("./public/index.html", "r");
                         if(!file) {
                             std::cout << "ERROR: Could not open index.html\n";
                             return 1;
