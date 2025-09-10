@@ -1,4 +1,5 @@
 #include "../include/server.h"
+#include <iostream>
 
 Server::Server() {
     CreateServerSocket();
@@ -44,20 +45,38 @@ bool Server::CreateServerSocket() {
     return true;
 }
 
+bool Server::Start() {
+    std::cout << "Server listening on port " << PORT << "...\n";
+
+    for(;;) {
+        clientfd = accept(sockfd, 0 , 0);
+        if(clientfd == -1)  {
+            std::cout << "ERROR: Socket creation error!" << std::endl;
+            std::cout << errno << std::endl;
+            return false;
+        }
+
+        char* requestBuff = GetRequest();
+        std::cout << requestBuff << std::endl;
+        AnalyzeRequest(requestBuff);
+    }
+}
+
 char* Server::GetRequest() {
-    char* requestBuff = nullptr;
+    char requestBuff[4096];
     int valread = read(clientfd, &requestBuff, sizeof(requestBuff));
     if(valread > 0) {
+        requestBuff[valread] = '\0';
         return requestBuff;
     }
-    return requestBuff;
+    return nullptr;
 }
 
 bool Server::AnalyzeRequest(char* requestBuff) {
     char* method = strtok(requestBuff, " ");
     char* requestTarget = strtok(NULL, " ");
     char* protocol = strtok(NULL, "\r\n");
-    
+
     if(strcmp(protocol, "HTTP/1.1") == 0) {
         if(strcmp(method, "GET") == 0) {
             if(requestTarget[0] == '/') {
@@ -86,7 +105,6 @@ bool Server::ReturnIndex() {
     strcat(responseBuff, "Content-Type: text/html\r\n");
     strcat(responseBuff, "\r\n");
     strcat(responseBuff, fileBuffer);
-
     SendResponse(responseBuff);
     return true;
 }
@@ -106,21 +124,3 @@ bool Server::SendResponse(const char* responseBuff) {
     }
     return true;
 }
-
-bool Server::Start() {
-    std::cout << "Server listening on port " << PORT << "...\n";
-
-    for(;;) {
-        clientfd = accept(sockfd, 0 , 0);
-        if(clientfd == -1)  {
-            std::cout << "ERROR: Socket creation error!" << std::endl;
-            std::cout << errno << std::endl;
-            return false;
-        }
-
-        char* requestBuff = GetRequest();
-        std::cout << requestBuff << std::endl;
-        AnalyzeRequest(requestBuff);
-    }
-}
-
