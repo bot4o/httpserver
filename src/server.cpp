@@ -79,8 +79,15 @@ bool Server::AnalyzeRequest(char* requestBuff) {
 
     if(strcmp(protocol, "HTTP/1.1") == 0) {
         if(strcmp(method, "GET") == 0) {
-            if(requestTarget[0] == '/') {
+            if(strcmp(requestTarget, "/")) {
+                //ReturnFile("./public/index.html", "text/html");
                 ReturnIndex();
+            }
+            if(strcmp(requestTarget, "/assets/css/style.css")) {
+                //ReturnFile("./public/index.html", "text/html");
+            }
+            if(strcmp(requestTarget, "/favicon.ico")) {
+                //ReturnFile("./public/index.html", "text/html");
             }
         }
     }
@@ -105,6 +112,9 @@ bool Server::ReturnIndex() {
     strcat(responseBuff, "Content-Type: text/html\r\n");
     strcat(responseBuff, "\r\n");
     strcat(responseBuff, fileBuffer);
+
+
+
     SendResponse(responseBuff);
     return true;
 }
