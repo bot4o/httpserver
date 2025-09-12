@@ -15,9 +15,9 @@ private:
     int sockfd;
     int clientfd;
     bool CreateServerSocket();
-    char* GetRequest();
+    bool GetRequest(char* requestBuff);
     bool AnalyzeRequest(char* requestBuff);
-    bool ReturnIndex();
+    bool ReturnFile(char* path, char *type);
     bool SendResponse(const char* responseBuff);
 public:
     Server();

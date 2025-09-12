@@ -1,8 +1,16 @@
 #include "../include/server.h"
+#include <cstdio>
+#include <cstring>
 #include <iostream>
+#include <ostream>
+#include <regex>
 
 Server::Server() {
-    CreateServerSocket();
+    if(CreateServerSocket() != true) {
+        std::cout << "ERROR: Server socket failed to create" << std::endl;
+        std::cout << "Exiting..." << std::endl;
+        return;
+    }
 }
 
 Server::~Server() {
@@ -11,7 +19,6 @@ Server::~Server() {
         std::cout << "ERROR: Couldn't close server socket";
         return;
     }
-
     std::cout << "Server closed";
 }
 
@@ -22,11 +29,11 @@ bool Server::CreateServerSocket() {
         std::cout << errno << std::endl;
         return false;
     }
-    struct sockaddr_in address = {
-        AF_INET,
-        htons(PORT),
-        {0} //localhost
-    };
+
+    struct sockaddr_in address;
+    address.sin_family = AF_INET;
+    address.sin_port = htons(PORT);
+    address.sin_addr.s_addr = INADDR_ANY;
 
     int result = bind(sockfd, (struct sockaddr *)&address, sizeof(address));
     if(result == -1) { 
@@ -35,7 +42,6 @@ bool Server::CreateServerSocket() {
         return false;
     }
 
-    //Setting server socket to wait for a request from client
     result = listen(sockfd, 1);
     if(result == -1) {
         std::cout << "ERROR: Setting listen() on socket file descriptor failed" << std::endl;
@@ -56,20 +62,20 @@ bool Server::Start() {
             return false;
         }
 
-        char* requestBuff = GetRequest();
+        char requestBuff[4096];
+        GetRequest(requestBuff);
         std::cout << requestBuff << std::endl;
         AnalyzeRequest(requestBuff);
     }
 }
 
-char* Server::GetRequest() {
-    char requestBuff[4096];
-    int valread = read(clientfd, &requestBuff, sizeof(requestBuff));
+bool Server::GetRequest(char* requestBuff) {
+    int valread = read(clientfd, requestBuff, 4096);
     if(valread > 0) {
         requestBuff[valread] = '\0';
-        return requestBuff;
+        return true;
     }
-    return nullptr;
+    return false;
 }
 
 bool Server::AnalyzeRequest(char* requestBuff) {
@@ -79,43 +85,57 @@ bool Server::AnalyzeRequest(char* requestBuff) {
 
     if(strcmp(protocol, "HTTP/1.1") == 0) {
         if(strcmp(method, "GET") == 0) {
-            if(strcmp(requestTarget, "/")) {
-                //ReturnFile("./public/index.html", "text/html");
-                ReturnIndex();
+            if(strcmp(requestTarget, "/") == 0) {
+                char path[] = "./public/index.html";
+                char fileType[] = "text/html";
+                ReturnFile(path, fileType);
+                return true;
             }
-            if(strcmp(requestTarget, "/assets/css/style.css")) {
-                //ReturnFile("./public/index.html", "text/html");
+            else if(strcmp(requestTarget, "/assets/css/style.css") == 0) {
+                char path[] = "./public/assets/css/style.css";
+                char fileType[] = "text/css";
+                ReturnFile(path, fileType);
+                return true;
             }
-            if(strcmp(requestTarget, "/favicon.ico")) {
-                //ReturnFile("./public/index.html", "text/html");
+            else if(strcmp(requestTarget, "/favicon.ico") == 0) {
+                char path[] = "./public/favicon.ico";
+                char fileType[] = "image/x-icon";
+                ReturnFile(path, fileType);
+                return true;
             }
         }
     }
 
     return true;
 }
-
-bool Server::ReturnIndex() {
-    FILE* file = fopen("./public/index.html", "r");
-    if(!file) {
-        std::cout << "ERROR: Could not open index.html\n";
+bool Server::ReturnFile(char* path, char* type) {
+    FILE* file = fopen(path, "r"); //read
+    if (!file) {
+        //NULL
+        // File not found
+        const char *notFound =
+            "HTTP/1.1 404 Not Found\r\n"
+            "Content-Type: text/plain\r\n\r\n"
+            "404 Not Found";
+        SendResponse(notFound);
         return false;
     }
+
     char fileBuffer[2048];
-    long bytesRead = fread(fileBuffer, 1, sizeof(fileBuffer) - 1, file);
+    long bytesRead = fread(fileBuffer, sizeof(char), sizeof(fileBuffer) - 1 /* space for \0 */, file);
     fileBuffer[bytesRead] = '\0';
-    fclose(file);
 
-    char responseBuff[4096];
-    responseBuff[0] = '\0';
-    strcat(responseBuff, "HTTP/1.1 200 OK\r\n");
-    strcat(responseBuff, "Content-Type: text/html\r\n");
-    strcat(responseBuff, "\r\n");
-    strcat(responseBuff, fileBuffer);
+    char header[2048];
+    snprintf(header, sizeof(header),
+             "HTTP/1.1 200 OK\r\n"
+             "Content-Type: %s\r\n\r\n",
+             type);
 
-
-
+    char* responseBuff = strcat(header, fileBuffer);
+    std::cout << responseBuff << std::endl;
     SendResponse(responseBuff);
+
+    fclose(file);
     return true;
 }
 
