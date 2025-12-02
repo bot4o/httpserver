@@ -12,15 +12,26 @@
 
 class Server {
 private:
+    //Sockfd variable 
     int sockfd;
+    char requestBuff[4096];
     int clientfd;
+
+    //Creates the socket for the server
     bool CreateServerSocket();
-    bool GetRequest(char* requestBuff);
+    //Gets content from clinet 
+    bool ReadClient(char* requestBuff);
+    //logic for analyzsingHTTP request
     bool AnalyzeRequest(char* requestBuff);
+
     bool ReturnFile(char* path, char *type);
+
     bool SendResponse(const char* responseBuff);
 public:
+    //Constructor
     Server();
+    //Destructor
     virtual ~Server();
+
     bool Start();
 };

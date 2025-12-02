@@ -3,8 +3,8 @@
 #include <cstring>
 #include <iostream>
 #include <ostream>
-#include <regex>
 
+//Constructor
 Server::Server() {
     if(CreateServerSocket() != true) {
         std::cout << "ERROR: Server socket failed to create" << std::endl;
@@ -13,6 +13,7 @@ Server::Server() {
     }
 }
 
+//Destructor
 Server::~Server() {
     int result = close(sockfd);
     if(result == -1) {
@@ -23,6 +24,7 @@ Server::~Server() {
 }
 
 bool Server::CreateServerSocket() {
+    //The actual server socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd == -1) {
         std::cout << "Socket creation error!" << std::endl;
@@ -30,31 +32,36 @@ bool Server::CreateServerSocket() {
         return false;
     }
 
+    //Defines a IPv4 domain socket
     struct sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_port = htons(PORT);
     address.sin_addr.s_addr = INADDR_ANY;
 
-    int result = bind(sockfd, (struct sockaddr *)&address, sizeof(address));
-    if(result == -1) { 
+    //Binds the sockaddr_in and socket
+    if(bind(sockfd, (struct sockaddr *)&address, sizeof(address)) == -1) { 
         std::cout << "ERROR: Binding IP to socket file descriptor" << std::endl;
         std::cout << errno << std::endl;
         return false;
     }
 
-    result = listen(sockfd, 1);
-    if(result == -1) {
+    //Prepares the socket for listening
+    if(listen(sockfd, 1) == -1) {
         std::cout << "ERROR: Setting listen() on socket file descriptor failed" << std::endl;
         std::cout << errno << std::endl;
         return false;
     }
+
     return true;
 }
 
 bool Server::Start() {
     std::cout << "Server listening on port " << PORT << "...\n";
 
+    //Opens a "session"
     for(;;) {
+        //waits for a connection on server socket
+        //sets the creates a new clinet socket
         clientfd = accept(sockfd, 0 , 0);
         if(clientfd == -1)  {
             std::cout << "ERROR: Socket creation error!" << std::endl;
@@ -62,15 +69,17 @@ bool Server::Start() {
             return false;
         }
 
-        char requestBuff[4096];
-        GetRequest(requestBuff);
+        ReadClient(requestBuff);
+
         std::cout << requestBuff << std::endl;
+
         AnalyzeRequest(requestBuff);
     }
 }
 
-bool Server::GetRequest(char* requestBuff) {
-    int valread = read(clientfd, requestBuff, 4096);
+bool Server::ReadClient(char* requestBuff) {
+    //Reads from the clinet AND stores them to buffer 
+    int valread = read(clientfd, requestBuff, sizeof(requestBuff));
     if(valread > 0) {
         requestBuff[valread] = '\0';
         return true;
@@ -111,8 +120,6 @@ bool Server::AnalyzeRequest(char* requestBuff) {
 bool Server::ReturnFile(char* path, char* type) {
     FILE* file = fopen(path, "r"); //read
     if (!file) {
-        //NULL
-        // File not found
         const char *notFound =
             "HTTP/1.1 404 Not Found\r\n"
             "Content-Type: text/plain\r\n\r\n"
