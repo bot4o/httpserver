@@ -3,7 +3,6 @@
 A lightweight educational HTTP server written in C++.
 Currently serves a static `index.html` (with CSS & JS) and focuses on helping me learn and experiment with **system calls**, low-level networking, and OS internals.
 
----
 
 ## Overview
 
@@ -12,7 +11,6 @@ Its main purpose is **learning**, not production use:
 
 At the moment, the server returns a single static page (`index.html`), but the project will evolve as I learn more.
 
----
 
 ## Features
 
@@ -27,7 +25,6 @@ Planned:
 * Multi-threaded request handling
 * MIME type recognition
 
----
 
 ## Project Structure
 
@@ -39,7 +36,6 @@ Planned:
 `Makefile`
 `README.md`
 
----
 
 ## Installation & Setup
 
@@ -74,7 +70,6 @@ make
 ./build/http-server
 ```
 
----
 
 ## Usage
 
@@ -92,7 +87,6 @@ http://localhost:8080
 
 You should see the static `index.html` page being served.
 
----
 
 ## Requirements
 
@@ -101,10 +95,8 @@ You should see the static `index.html` page being served.
 * make
 * bear (for setup step)
 
----
 
 ## Contributing
 
 This project is experimental and educational, but contributions, ideas, and pull requests are welcome.
 
----
