@@ -1,11 +1,8 @@
 #pragma once
 
-#include <iostream>
-#include <cstdio>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <cstring>
 
 #define PORT 8080
 #define VIEWSDIR = "./public/";
