@@ -1,0 +1,32 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-Wall",
+      "-Wextra",
+      "-I./include",
+      "-c",
+      "-o",
+      "build/obj/src/server.o",
+      "src/server.cpp"
+    ],
+    "directory": "/home/bobbi/personal/dev/httpserver",
+    "file": "/home/bobbi/personal/dev/httpserver/src/server.cpp",
+    "output": "/home/bobbi/personal/dev/httpserver/build/obj/src/server.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-Wall",
+      "-Wextra",
+      "-I./include",
+      "-c",
+      "-o",
+      "build/obj/main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/bobbi/personal/dev/httpserver",
+    "file": "/home/bobbi/personal/dev/httpserver/main.cpp",
+    "output": "/home/bobbi/personal/dev/httpserver/build/obj/main.o"
+  }
+]

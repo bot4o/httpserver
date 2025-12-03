@@ -1,28 +1,30 @@
-CXX = clang++
-#Flags passed to the compiler:
-#	-Wall -> enable common warnings 
-#	-Wextra -> enable extra warnings
-#	-Iinclude -> tells the compiler to look for header file in include/ directory
-CXXFLAGS = -Wall -Wextra -Iinclude
+COMPILER = clang++
+COMPILER_FLAGS = -Wall -Wextra -I./include
+# -Wall - enable common warnings
+# -Wextra - enable extra warnings
+# -I./include - tells the compiler where to find .h files
 
-#Finds all .c files inside a dir
-SRC = $(wildcard src/*.cpp) main.cpp
-# Converts all .c source files into .o object filennames 
-OBJ = $(SRC:.cpp=.o)
-# .o files are compiled pices of code before linking
+# dirs
+OBJDIR = build/obj
 
-# Create a binary / executable
+# cpp files
+CPP = $(wildcard src/*.cpp) main.cpp
+# "src/file.cpp" -> "build/obj/src/file.o"
+OBJ = $(addprefix $(OBJDIR)/, $(CPP:.cpp=.o))
+# bin
 BIN = build/http-server
 
-#default 
+#default
 all: $(BIN)
 
-# Rule: how to build the binary
+# Links all .o files 
 $(BIN): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(COMPILER) $(COMPILER_FLAGS) -o $@ $^
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# Ensure obj subdirectories exist and compile each file
+$(OBJDIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(COMPILER) $(COMPILER_FLAGS) -c $< -o $@
 
 clean:
-	rm -f src/*.o main.o $(BIN)
+	rm -rf $(OBJDIR) $(BIN)
