@@ -14,13 +14,12 @@ class Server {
 private:
     //Sockfd variable 
     int sockfd;
-    char requestBuff[4096];
     int clientfd;
 
     //Creates the socket for the server
     bool CreateServerSocket();
     //Gets content from clinet 
-    bool ReadClient(char* requestBuff);
+    bool ReadClient(char* requestBuff, int requestBuffSize);
     //logic for analyzsingHTTP request
     bool AnalyzeRequest(char* requestBuff);
 

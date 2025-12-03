@@ -68,8 +68,8 @@ bool Server::Start() {
             std::cout << errno << std::endl;
             return false;
         }
-
-        ReadClient(requestBuff);
+        char requestBuff[4096];
+        ReadClient(requestBuff, sizeof(requestBuff));
 
         std::cout << requestBuff << std::endl;
 
@@ -77,9 +77,9 @@ bool Server::Start() {
     }
 }
 
-bool Server::ReadClient(char* requestBuff) {
+bool Server::ReadClient(char* requestBuff, int requestBuffSize) {
     //Reads from the clinet AND stores them to buffer 
-    int valread = read(clientfd, requestBuff, sizeof(requestBuff));
+    int valread = read(clientfd, requestBuff, requestBuffSize);
     if(valread > 0) {
         requestBuff[valread] = '\0';
         return true;
@@ -161,3 +161,4 @@ bool Server::SendResponse(const char* responseBuff) {
     }
     return true;
 }
+
